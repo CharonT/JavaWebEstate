@@ -1,0 +1,5 @@
+USE estate;
+ALTER TABLE building AUTO_INCREMENT =  1;
+ALTER TABLE rentarea AUTO_INCREMENT =  1;
+ALTER TABLE assignmentbuilding AUTO_INCREMENT =  1;
+
