@@ -6,7 +6,7 @@ import java.util.Map;
 public interface JpaRepository<T> {
 	List<T> findAll(Map<String,Object> params, Object ...objects);
 	List<T> findAll(String sql,Object ...objects);
-	List<T> findById(Object... ids);
+	List<T> findById(Object object,Object... ids);
 	void insert(String sql,Object ...objects);
 	Long insert(Object object);
 	List<Long> update(Object object,Object ...where);

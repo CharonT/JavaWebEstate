@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.phuocthanh.api.input.BuildingInput;
 import com.phuocthanh.dto.BuildingDTO;
+import com.phuocthanh.dto.RentAreaDTO;
 import com.phuocthanh.service.IBuildingService;
 import com.phuocthanh.service.impl.BuildingService;
 import com.phuocthanh.utils.FormUtils;
@@ -62,11 +63,11 @@ public class BuildingAPI extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		ObjectMapper obj=new ObjectMapper();
 		request.setCharacterEncoding("UTF-8");
-		BuildingDTO buildingDTO=HttpUtils.of(request.getReader()).toModel(BuildingDTO.class);
+		//BuildingDTO buildingDTO=HttpUtils.of(request.getReader()).toModel(BuildingDTO.class);
 		
 		//================VD lưu dữ liệu
-		
-		Long id=buildingService.save(buildingDTO);
+		RentAreaDTO dto=HttpUtils.of(request.getReader()).toModel(RentAreaDTO.class);
+		Long id=buildingService.save(dto);
 
 		obj.writeValue(response.getOutputStream(), id);
 		
@@ -86,8 +87,10 @@ public class BuildingAPI extends HttpServlet {
 
 	@Override
 	protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		super.doDelete(req, resp);
+		req.setCharacterEncoding("UTF-8");
+		BuildingDTO dto=HttpUtils.of(req.getReader()).toModel(BuildingDTO.class);
+		//buildingService.dropById(buildingInput.getIds());
+		buildingService.dropRandom(dto);
 	}
 	
 

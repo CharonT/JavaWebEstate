@@ -18,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.phuocthanh.annotation.Column;
 import com.phuocthanh.annotation.Table;
 import com.phuocthanh.dto.BuildingDTO;
+import com.phuocthanh.entity.RentAreaEntity;
 import com.phuocthanh.mapper.ResultSetMapper;
 import com.phuocthanh.repository.EntityManagerFactory;
 import com.phuocthanh.repository.JpaRepository;
@@ -259,6 +260,10 @@ public class SimpleJpaRepository<T> implements JpaRepository<T> {
 
 	@Override
 	public Long insert(Object object) {
+		List<Long> ids=new ArrayList<Long>();
+		if(object instanceof RentAreaEntity) {
+			ids=getValueReference(object);
+		}
 		String sql = createSQLInsert();
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -272,7 +277,11 @@ public class SimpleJpaRepository<T> implements JpaRepository<T> {
 			int index = 1;
 			for (Field field : aClass.getDeclaredFields()) {
 				field.setAccessible(true);
-				statement.setObject(index, field.get(object));
+				
+				if(field.getName().equalsIgnoreCase("buildingid")) {
+					if(!ids.contains(field.get(object))) return -1L;
+				}
+				statement.setObject(index, field.get(object));	
 				index++;
 
 			}
@@ -287,7 +296,6 @@ public class SimpleJpaRepository<T> implements JpaRepository<T> {
 				}
 				parentClass = parentClass.getSuperclass();
 			}
-
 			int result=statement.executeUpdate();
 			rs=statement.getGeneratedKeys(); //lấy các giá trị tự động tạo trong sql
 			connection.commit();
@@ -296,8 +304,8 @@ public class SimpleJpaRepository<T> implements JpaRepository<T> {
 					Long id=rs.getLong(1);
 					return id;
 				}
-				
 			}
+			
 		} catch (SQLException | IllegalArgumentException | IllegalAccessException e) {
 			// TODO Auto-generated catch block
 			if (connection != null) {
@@ -331,7 +339,50 @@ public class SimpleJpaRepository<T> implements JpaRepository<T> {
 		}
 		return -1L;
 	}
+	private List<Long> getValueReference(Object object) {
+		List<Long> list=new ArrayList<>();
+			ResultSetMapper<T> resultSetMapper = new ResultSetMapper<>();
+			Connection connection = EntityManagerFactory.getConnection();
+			PreparedStatement statement=null;
+			ResultSet resultSet = null;
+			if (connection != null) {
+				try {
+					statement=connection.prepareStatement("SELECT id FROM building");
+					resultSet=statement.executeQuery();
+					while(resultSet.next()) {
+						list.add(resultSet.getLong(1));
+					}
+					return list;
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					System.out.println(e.getMessage());
+					return new ArrayList<>();
+				} finally {
+					try {
+						if (connection != null) {
+							connection.close();
 
+						}
+						if (statement != null) {
+							statement.close();
+
+						}
+						if (resultSet != null) {
+							resultSet.close();
+
+						}
+
+					} catch (SQLException e) {
+						// TODO Auto-generated catch block
+						System.out.println(e.getMessage());
+						return new ArrayList<>();
+					}
+
+				}
+
+			}
+		return new ArrayList<>();
+	}
 	@Override
 	public List<Long> update(Object object, Object... where) {
 		String sql = createSQLUpdate(where);
@@ -459,12 +510,12 @@ public class SimpleJpaRepository<T> implements JpaRepository<T> {
 	}
 
 	@Override
-	public List<T> findById(Object... ids) {
+	public List<T> findById(Object object,Object... ids) {
 		ResultSetMapper<T> resultSetMapper = new ResultSetMapper<>();
 		Connection connection = EntityManagerFactory.getConnection();
 		PreparedStatement statement = null;
 		ResultSet resultSet = null;
-		String query=createSQLFindById(ids);
+		String query=createSQLFindById(object,ids);
 		if (connection != null) {
 			try {
 				statement = connection.prepareStatement(query);
@@ -500,8 +551,14 @@ public class SimpleJpaRepository<T> implements JpaRepository<T> {
 		}
 		return new ArrayList<>();
 	}
-	private String createSQLFindById(Object... ids) {	
-		StringBuilder sqlQuery=new StringBuilder("SELECT * FROM building WHERE 1 = 2");
+	private String createSQLFindById(Object object,Object... ids) {	
+		String tableName = "";
+		if (zClass.isAnnotationPresent(Table.class)) {
+			Table table = zClass.getAnnotation(Table.class);
+			tableName = table.name();
+
+		}
+		StringBuilder sqlQuery=new StringBuilder("SELECT * FROM ").append(tableName).append(" WHERE 1 = 2");
 		for(Object id:ids) {
 			sqlQuery.append(" OR id = "+id);			
 		}

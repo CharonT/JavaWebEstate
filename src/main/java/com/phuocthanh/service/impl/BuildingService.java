@@ -14,15 +14,19 @@ import org.apache.commons.lang3.StringUtils;
 import com.phuocthanh.builder.BuildingSearchBuilder;
 import com.phuocthanh.converter.BuildingConverter;
 import com.phuocthanh.dto.BuildingDTO;
+import com.phuocthanh.dto.RentAreaDTO;
 import com.phuocthanh.entity.BuildingEntity;
+import com.phuocthanh.entity.RentAreaEntity;
 import com.phuocthanh.repository.IBuildingRepository;
+import com.phuocthanh.repository.IRentAreaRepository;
 import com.phuocthanh.repository.impl.BuildingRepository;
+import com.phuocthanh.repository.impl.RentAreaRepository;
 import com.phuocthanh.service.IBuildingService;
 
 public class BuildingService implements IBuildingService {
 	private IBuildingRepository buildingRepository = new BuildingRepository();
 	private BuildingConverter buildingConverter = new BuildingConverter();
-
+	private IRentAreaRepository rentAreaRepository=new RentAreaRepository();
 	@Override
 	public List<BuildingDTO> findAll(BuildingSearchBuilder builder) {
 		List<BuildingDTO> results = new ArrayList<>();
@@ -84,17 +88,17 @@ public class BuildingService implements IBuildingService {
 
 	@Override
 	public Long save(BuildingDTO dto) {
-		convertoType(dto,dto.getBuildingTypes());
+		dto.setType(convertoString(dto,dto.getBuildingTypes()));
 		BuildingEntity entity=buildingConverter.convertDTOToEntity(dto);
 		Long buildingId=buildingRepository.insert(entity);
-		return buildingConverter.convertEntityToDTO(buildingRepository.findById(buildingId).get(0)).getId();
+		return (buildingId<0) ? -1L : buildingConverter.convertEntityToDTO(buildingRepository.findById(entity,buildingId).get(0)).getId();
 		
 	}
 
 	@Override
 	public List<Long> upgrade(BuildingDTO dto, Object... where) {
 		// TODO Auto-generated method stub
-			convertoType(dto,dto.getBuildingTypes());
+			convertoString(dto,dto.getBuildingTypes());
 			BuildingEntity entity=buildingConverter.convertDTOToEntity(dto);
 			return buildingRepository.update(entity,where);
 		
@@ -138,10 +142,17 @@ public class BuildingService implements IBuildingService {
 		buildingRepository.deleteRandom(entity);
 		
 	}
-	private void convertoType(BuildingDTO dto,String[] buildingTypes) {
-		String str=Arrays.toString(buildingTypes);
+	private String convertoString(BuildingDTO dto,String[] arr) {
+		String str=Arrays.toString(arr);
 		str=str.substring(str.indexOf("[")+1,str.indexOf("]") );
-		dto.setType(str);
+		return str;
+	}
+
+	@Override
+	public Long save(RentAreaDTO dto) {
+		RentAreaEntity entity=buildingConverter.convertDTOToEntity(dto);
+		Long buildingId=rentAreaRepository.insert(entity);
+		return (buildingId < 0) ? -1L : buildingConverter.convertEntityToDTO(rentAreaRepository.findById(entity,buildingId).get(0)).getId();
 	}
 
 }

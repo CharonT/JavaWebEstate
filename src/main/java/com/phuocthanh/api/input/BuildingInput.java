@@ -2,6 +2,7 @@ package com.phuocthanh.api.input;
 
 public class BuildingInput {
 	private String name;
+	private String ward;
 	private String district;
 	private String numberOfBasement;
 	private String floorArea;
@@ -78,5 +79,12 @@ public class BuildingInput {
 	public void setStaffId(Long staffId) {
 		this.staffId = staffId;
 	}
+	public String getWard() {
+		return ward;
+	}
+	public void setWard(String ward) {
+		this.ward = ward;
+	}
+	
 	
 }
