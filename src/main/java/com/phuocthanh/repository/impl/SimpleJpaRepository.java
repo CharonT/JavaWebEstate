@@ -724,4 +724,50 @@ public class SimpleJpaRepository<T> implements JpaRepository<T> {
 		}
 		return sql;
 	}
+	protected List<Long> checked(String sql) {
+		Connection connection = EntityManagerFactory.getConnection();
+		PreparedStatement statement = null;
+		ResultSet resultSet = null;
+		String query=sql;
+		List<Long> arrStaffId=new ArrayList<Long>();
+		if (connection != null) {
+			try {
+				statement = connection.prepareStatement(query);
+				resultSet = statement.executeQuery();
+				while(resultSet.next()) {
+					arrStaffId.add(resultSet.getLong(2));
+				}
+				
+				return arrStaffId;
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				System.out.println(e.getMessage());
+				return new ArrayList<>();
+			} finally {
+				try {
+					if (connection != null) {
+						connection.close();
+
+					}
+					if (statement != null) {
+						statement.close();
+
+					}
+					if (resultSet != null) {
+						resultSet.close();
+
+					}
+
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					System.out.println(e.getMessage());
+					return new ArrayList<>();
+				}
+
+			}
+
+		}
+		return new ArrayList<>();
+		
+	}
 }

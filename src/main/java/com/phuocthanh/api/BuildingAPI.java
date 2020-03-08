@@ -1,6 +1,7 @@
 package com.phuocthanh.api;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -11,6 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.phuocthanh.api.input.BuildingInput;
+import com.phuocthanh.api.output.BuildingTypeOutput;
+import com.phuocthanh.builder.BuildingSearchBuilder;
 import com.phuocthanh.dto.BuildingDTO;
 import com.phuocthanh.dto.RentAreaDTO;
 import com.phuocthanh.service.IBuildingService;
@@ -33,29 +36,39 @@ public class BuildingAPI extends HttpServlet {
 		BuildingInput buildingInput=FormUtils.toModel(BuildingInput.class, request);
 		//vd get du liệu
 		
+		String action=request.getParameter("action");
+		if(action!=null&&action.equals("SEARCH_BUILDING")) {
+			BuildingSearchBuilder builder=new BuildingSearchBuilder.Builder() //xem Class này định nghĩa sẽ hiểu
+					//khi new BuildingSearchBuilder() :goi constructor nhưng chưa co () thì vẫn chưa có bộ nhớ nên có thể gọi class inner static
+					//muc đích chưa gọi constructor là vi để có thể đệ quy gọi các hàm set khác
+					.setName(buildingInput.getName()).setDistrict(buildingInput.getDistrict())
+					.setFloorArea(buildingInput.getFloorArea())
+					.setNumberOfBasement(buildingInput.getNumberOfBasement())
+					.setRentAreaFrom(buildingInput.getRentAreaFrom())
+					.setRentAreaTo(buildingInput.getRentAreaTo())
+					.setRentCostFrom(buildingInput.getRentCostFrom())
+					.setRentCostTo(buildingInput.getRentCostTo())
+					.setStaffId(buildingInput.getStaffId())
+					.setTypes(buildingInput.getTypes())
+					.build();
+			List<BuildingDTO> result=buildingService.findAll(builder);
+			obj.writeValue(response.getOutputStream(), result); //output stream là 1 dữ liệu nhị phân
+			///hàm này đề tuần tự hóa các dữ liệu nhị phân của đối tượng sang cho response
+		}else if(action!=null&&action.equals("GET_BUILDING_TYPE")) {
+			List<BuildingTypeOutput> result=buildingService.getBuildingType();
+			obj.writeValue(response.getOutputStream(), result);
+			
+//			obj.writeValue(response.getOutputStream(), buildingService.getMapBuildingType());
+			
+		}
 		
-//		BuildingSearchBuilder builder=new BuildingSearchBuilder.Builder() //xem Class này định nghĩa sẽ hiểu
-//				//khi new BuildingSearchBuilder() :goi constructor nhưng chưa co () thì vẫn chưa có bộ nhớ nên có thể gọi class inner static
-//				//muc đích chưa gọi constructor là vi để có thể đệ quy gọi các hàm set khác
-//				.setName(buildingInput.getName()).setDistrict(buildingInput.getDistrict())
-//				.setFloorArea(buildingInput.getFloorArea())
-//				.setNumberOfBasement(buildingInput.getNumberOfBasement())
-//				.setRentAreaFrom(buildingInput.getRentAreaFrom())
-//				.setRentAreaTo(buildingInput.getRentAreaTo())
-//				.setRentCostFrom(buildingInput.getRentCostFrom())
-//				.setRentCostTo(buildingInput.getRentCostTo())
-//				.setStaffId(buildingInput.getStaffId())
-//				.setTypes(buildingInput.getTypes())
-//				.build();
-//		List<BuildingDTO> result=buildingService.findAll(builder);
-//		obj.writeValue(response.getOutputStream(), result); //output stream là 1 dữ liệu nhị phân
-//		///hàm này đề tuần tự hóa các dữ liệu nhị phân của đối tượng sang cho response
+		
 		
 		
 		
 		//VD tìm dữ liệu theo id
-		List<BuildingDTO> result =buildingService.findById(buildingInput.getIds());
-		obj.writeValue(response.getOutputStream(), result);
+//		List<BuildingDTO> result =buildingService.findById(buildingInput.getIds());
+//		obj.writeValue(response.getOutputStream(), result);
 		
 	}
 

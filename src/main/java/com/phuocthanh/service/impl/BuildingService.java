@@ -11,12 +11,14 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 
+import com.phuocthanh.api.output.BuildingTypeOutput;
 import com.phuocthanh.builder.BuildingSearchBuilder;
 import com.phuocthanh.converter.BuildingConverter;
 import com.phuocthanh.dto.BuildingDTO;
 import com.phuocthanh.dto.RentAreaDTO;
 import com.phuocthanh.entity.BuildingEntity;
 import com.phuocthanh.entity.RentAreaEntity;
+import com.phuocthanh.enums.BuildingTypeEnum;
 import com.phuocthanh.repository.IBuildingRepository;
 import com.phuocthanh.repository.IRentAreaRepository;
 import com.phuocthanh.repository.impl.BuildingRepository;
@@ -153,6 +155,27 @@ public class BuildingService implements IBuildingService {
 		RentAreaEntity entity=buildingConverter.convertDTOToEntity(dto);
 		Long buildingId=rentAreaRepository.insert(entity);
 		return (buildingId < 0) ? -1L : buildingConverter.convertEntityToDTO(rentAreaRepository.findById(entity,buildingId).get(0)).getId();
+	}
+
+	@Override
+	public List<BuildingTypeOutput> getBuildingType() {
+		List<BuildingTypeOutput> results=new ArrayList<BuildingTypeOutput>();
+		for(BuildingTypeEnum item:BuildingTypeEnum.values()) {
+			BuildingTypeOutput buildingTypeOutput =new BuildingTypeOutput();//;khai bao ben ngoai vong lap se khac tai sao ?
+			buildingTypeOutput.setCode(item.toString());
+			buildingTypeOutput.setName(item.getValue());
+			results.add(buildingTypeOutput);
+		}
+		return results;
+	}
+
+	@Override
+	public Map<String, String> getMapBuildingType() {
+		Map<String,String> results=new HashMap<>();
+		for(BuildingTypeEnum item:BuildingTypeEnum.values()) {
+			results.put(item.toString(), item.getValue());
+		}
+		return results;
 	}
 
 }

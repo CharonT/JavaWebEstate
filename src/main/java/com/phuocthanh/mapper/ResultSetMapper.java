@@ -17,14 +17,14 @@ import com.phuocthanh.annotation.Entity;
 public class ResultSetMapper<T> {
 	public List<T> mapRow(ResultSet rs, Class<T> zClass) {
 		List<T> results = new ArrayList<>();
-
+		int countField=zClass.getDeclaredFields().length;
+		boolean check=true;
 		try {
 			if (zClass.isAnnotationPresent(Entity.class)) {
 				ResultSetMetaData resultSetMetaData = rs.getMetaData();
 				Field[] fields = zClass.getDeclaredFields();
 				while (rs.next()) {
-					T object = zClass.newInstance();
-					
+					T object = zClass.newInstance();	
 					for (int i = 0; i < resultSetMetaData.getColumnCount(); i++) {
 						String columnName = resultSetMetaData.getColumnName(i + 1);
 						Object columnValue = rs.getObject(i + 1);
@@ -49,6 +49,7 @@ public class ResultSetMapper<T> {
 						}
 						Class<?> parentClass=zClass.getSuperclass();
 						while(parentClass!=null) {
+							if(check) countField+=parentClass.getDeclaredFields().length;
 							for (Field field : parentClass.getDeclaredFields()) {
 								if (field.isAnnotationPresent(Column.class)) {
 									Column column = field.getAnnotation(Column.class);
@@ -69,9 +70,14 @@ public class ResultSetMapper<T> {
 								}
 							}
 							parentClass=parentClass.getSuperclass();
+							
 						}
+						check=false;
+						if(countField-1 == i)
+							break; 
 					}
 					results.add(object);
+					
 				}
 			}
 		} catch (SQLException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
